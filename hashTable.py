@@ -20,6 +20,7 @@ class RandomWalkHashTable:
         self.max_displacements = max_displacements
 
         self.table = [None] * self.size
+        self.num_elements = 0
         self.fill(load_factor)
 
 
@@ -62,6 +63,8 @@ class RandomWalkHashTable:
             for pos in candidate_positions:
                 if table[pos] is None:
                     table[pos] = key
+                    if not dry_run:
+                        self.num_elements += 1
                     return True, i
 
             # Randomly evict one resident
@@ -92,6 +95,5 @@ class RandomWalkHashTable:
     def calculate_load_factor(self):
         """Calculate and return the load factor in the table"""
 
-        num_elements = sum(1 for key in self.table if key is not None)
-        return num_elements / self.size
+        return self.num_elements / self.size
 

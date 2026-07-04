@@ -1,6 +1,7 @@
 
 import math
 import random
+from typing import Optional
 
 from utils import get_hashing_functions, get_random_key
 
@@ -10,9 +11,9 @@ class RandomWalkHashTable:
 
     def __init__(self,
                  size: int,
-                 load_factor: float,
                  d: int,
-                 max_displacements: int) -> None:
+                 max_displacements: int,
+                 load_factor: Optional[float] = None) -> None:
         self.size = size
         self.d = d
 
@@ -21,7 +22,9 @@ class RandomWalkHashTable:
 
         self.table = [None] * self.size
         self.num_elements = 0
-        self.fill(load_factor)
+
+        if load_factor:
+            self.fill(load_factor)
 
 
     def get_candidate_positions(self, key, previous_pos = None) -> list[int]:

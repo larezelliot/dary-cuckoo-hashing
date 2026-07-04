@@ -1,59 +1,48 @@
 """CSE6041"""
 
 import random
-from functools import partial
-from typing import Optional
+from statistics import mean, median, stdev
 
 import matplotlib.pyplot as plt
-import mmh3
+from hashTable import RandomWalkHashTable
+from tqdm import tqdm
+
+from utils import get_random_key
 
 
-random.seed(1)
-
-MAX_DISPLACEMENTS  = 1000
-NUM_KEYS = 1000
-TABLE_SIZE = 500
-NUM_HASH_FUNCTIONS = 10
-
-T: list[Optional[bytes]] = [None] * TABLE_SIZE
-hashing_functions = [partial(mmh3.hash, seed=i) for i in range(NUM_HASH_FUNCTIONS)]
-
-
-def insert(key: bytes, t) -> tuple[bool, int] :
-    """"""
-
-    for i in range(MAX_DISPLACEMENTS):
-        # Get candidate positions
-        candidate_positions = [h_i(key) % TABLE_SIZE
-                               for h_i in hashing_functions]
-
-        # Try every candidate position
-        for p in candidate_positions:
-            if t[p] is None:
-                t[p] = key
-                return True, i
-
-        # Randomly evict one resident
-        pos = random.choice(candidate_positions)
-        t[pos], key = key, t[pos]  # type: ignore
-
-    return False, MAX_DISPLACEMENTS
+# TODO: Share seed across modules
+# random.seed(1)
 
 
 def main():
-    """"""
-    success_arr = []
-    displacement_arr = []
+    d = 2
 
-    for _ in range(NUM_KEYS):
-        success, displacements = insert(random.randbytes(8), T)
+    for size in [1_000, 10_000, 100_000]:
+        for load_factor in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]:
+            table = RandomWalkHashTable(size, load_factor, d=2, max_displacements=d*size)
+            random_keys = [get_random_key() for i in range(10_000)]
 
-        if success:
-            displacement_arr.append(displacements)
-        # print(f"{success=}\t{displacements=}")
+            failed_insertion = 0
+            displacements_arr = []
 
-    plt.plot(displacement_arr)
-    plt.show()
+            for key in random_keys:
+                was_inserted, displacements = table.insert_key(key, dry_run=True)
+
+                if not was_inserted:
+                    failed_insertion += 1
+                    continue
+
+                displacements_arr.append(displacements)
+
+            print(f"{size=} {load_factor=}")
+            # print(f"\tFailed: {failed_insertion=}")
+            # print(f"\tMIN: {min(displacements_arr)}")
+            # print(f"\tMAX: {max(displacements_arr)}")
+            print(f"\tMean: {mean(displacements_arr):2f}")
+            # print(f"\tMedian: {mean(displacements_arr):2f}")
+            print(f"\tSTD: {stdev(displacements_arr):2f}")
+
+        print()
 
 
 if __name__ == "__main__":

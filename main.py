@@ -18,8 +18,8 @@ def main():
     d = 2
 
     for size in [1_000, 10_000, 100_000]:
-        for load_factor in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]:
-            table = RandomWalkHashTable(size, load_factor, d=2, max_displacements=d*size)
+        for load_factor in [0.85]:
+            table = RandomWalkHashTable(size, load_factor, d=3, max_displacements=d*size)
             random_keys = [get_random_key() for i in range(10_000)]
 
             failed_insertion = 0

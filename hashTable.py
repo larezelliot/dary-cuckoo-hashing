@@ -3,7 +3,7 @@ import math
 import random
 from typing import Optional
 
-from utils import get_hashing_functions, get_random_key
+from utils import get_hashing_functions, get_optimal_max_displacements, get_random_key
 
 
 class RandomWalkHashTable:
@@ -12,14 +12,11 @@ class RandomWalkHashTable:
     def __init__(self,
                  size: int,
                  d: int,
-                 max_displacements: int,
                  load_factor: Optional[float] = None) -> None:
-        self.size = size
+        self.size = size  # TODO: size might change!
         self.d = d
 
         self.hashing_functions = get_hashing_functions(self.d)
-        self.max_displacements = max_displacements
-
         self.table = [None] * self.size
         self.num_elements = 0
 
@@ -48,27 +45,22 @@ class RandomWalkHashTable:
         return positions
 
 
-    def insert_key(self, key, dry_run: bool=False) -> tuple[bool, int]:
+    def insert_key(self, key) -> tuple[int, int]:
         """Insert a key into the hash table.
-        Returns a pair containing if the key was inserted and the number of displacements.
-
-         If ``dry_run`` is True, simulate the insertion without modifying the hash table.
+        Returns the number of total displacements and rehashes.
         """
-
-        table = self.table.copy() if dry_run else self.table
+        table = self.table
         previous_position = None
+        max_displacements = get_optimal_max_displacements(self.num_elements, self.size)
 
-        for i in range(self.max_displacements):
-
+        for i in range(max_displacements):
             # Try every candidate position
             candidate_positions = self.get_candidate_positions(key, previous_position)
-
             for pos in candidate_positions:
                 if table[pos] is None:
                     table[pos] = key
-                    if not dry_run:
-                        self.num_elements += 1
-                    return True, i
+                    self.num_elements += 1
+                    return i, 0
 
             # Randomly evict one resident
             position = random.choice(candidate_positions)
@@ -77,7 +69,37 @@ class RandomWalkHashTable:
             # Save previous position
             previous_position = position
 
-        return False, self.max_displacements
+        # If unable to find an empty position, rehash and insert
+        rehash_d, rehash_r = self.rehash()
+        d, r = self.insert_key(key)
+        return rehash_d + d, rehash_r + r
+
+
+    def rehash(self) -> tuple[int, int]:
+        """Rebuild the table using new hash functions.
+
+        Return the number of displacements and rehashes completed"""
+
+        keys = [key for key in self.table if key is not None]
+
+        # Empty the old tabl
+        self.hashing_functions = get_hashing_functions(self.d)
+        self.table = [None] * self.size
+        self.num_elements = 0
+
+        # Insert keys keeping track of displacements and sub-rehashes
+        displacements = 0
+        rehashes = 1
+        for key in keys:
+            d, r = self.insert_key(key)
+
+            displacements += d
+            rehashes += r
+
+        # HACK: Validate that all the keys match the current number or elements
+        assert len(keys) == self.num_elements
+
+        return displacements, rehashes
 
 
     def fill(self, load_factor: float=1.0) -> None:

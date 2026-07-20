@@ -4,7 +4,7 @@ from pathlib import Path
 from statistics import mean, stdev
 
 import matplotlib.pyplot as plt
-from config import D_VALUES, LOAD_FACTORS, N, OUTPUT_DIR, TABLE_SIZES
+from config import D_VALUES, LOAD_FACTORS, N, OUTPUT_DIR, PARTITIONED_HASH_TABLE, TABLE_SIZES
 from hashTable import MaxDisplacementsExceededError, RandomWalkDaryHashTable
 
 from utils import get_random_key
@@ -13,7 +13,7 @@ from utils import get_random_key
 def simulate(d: int, table_size: int, load_factor: float):
     max_displacements = table_size * 2
 
-    table = RandomWalkDaryHashTable(table_size, d, max_displacements, partitioned=False)
+    table = RandomWalkDaryHashTable(table_size, d, max_displacements, partitioned=PARTITIONED_HASH_TABLE)
 
     try:
         table.fill_random(load_factor)

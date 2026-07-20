@@ -42,28 +42,40 @@ def simulate(d: int, table_size: int, load_factor: float):
     return displacement_arr
 
 
+def save_displacement_plot(displacement_arr: list[int], title, filename):
+    mean_value = mean(displacement_arr)
+    std_value = stdev(displacement_arr)
+
+    print(f"\tMean: {mean_value:.2f}")
+    print(f"\tSTD: {std_value:.2f}")
+
+    output_file = Path(f"{OUTPUT_DIR}/{filename}")
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+
+    plt.plot(sorted(displacement_arr))
+    plt.title(title)
+    plt.xlabel("inserted random keys")
+    plt.ylabel("displacements per insertion")
+    plt.savefig(output_file)
+    plt.close()
+
+
+
 def main():
     for size in TABLE_SIZES:
         for d in D_VALUES:
             for load_factor in LOAD_FACTORS:
-                displacement_arr = simulate(d, size, load_factor)
                 title = f"size={size}, d={d}, load_factor={load_factor}"
-                print(title)
+                displacement_arr = simulate(d, size, load_factor)
+
 
                 if len(displacement_arr) != 0:
-                    print(f"\tMean: {mean(displacement_arr):.2f}")
-                    print(f"\tSTD: {stdev(displacement_arr):.2f}")
+                    print(title)
 
-                    output_file = Path(f"{OUTPUT_DIR}/{size}/{d}/{load_factor}.png")
-                    output_file.parent.mkdir(parents=True, exist_ok=True)
-
-                    plt.plot(sorted(displacement_arr))
-                    plt.title(title)
-                    plt.xlabel("inserted random keys")
-                    plt.ylabel("displacements per insertion")
-                    plt.savefig(output_file)
-                    plt.close()
+                    filename = f"{size}/{d}/{load_factor}.png"
+                    save_displacement_plot(displacement_arr, title, filename)
                 else:
+                    print(f"FAILED: {title}")
                     break
 
 

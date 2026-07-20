@@ -5,15 +5,20 @@ from statistics import mean, stdev
 
 import matplotlib.pyplot as plt
 from config import D_VALUES, LOAD_FACTORS, N, OUTPUT_DIR, PARTITIONED_HASH_TABLE, TABLE_SIZES
-from hashTable import MaxDisplacementsExceededError, RandomWalkDaryHashTable
 
+
+from hash_tables.hash_table import MaxDisplacementsExceededError
+from hash_tables.random_walk_dary_hash_table import RandomWalkDaryHashTable
 from utils import get_random_key
 
 
 def simulate(d: int, table_size: int, load_factor: float):
     max_displacements = table_size * 2
 
-    table = RandomWalkDaryHashTable(table_size, d, max_displacements, partitioned=PARTITIONED_HASH_TABLE)
+    table = RandomWalkDaryHashTable(size=table_size,
+                                    d=d,
+                                    max_displacements=max_displacements,
+                                    partitioned=PARTITIONED_HASH_TABLE)
 
     try:
         table.fill_random(load_factor)
@@ -21,15 +26,15 @@ def simulate(d: int, table_size: int, load_factor: float):
         print(f"Unable to create {table} with load factor {load_factor}")
         return []  #HACK
 
-    original_table = table.table.copy()
+    original_slots = table.slots.copy()
 
     # Create random keys and insert in the table, counting the number of displacements
-    random_keys = [get_random_key() for _ in range(N)]
+    random_keys = (get_random_key() for _ in range(N))
     displacement_arr = []
 
     for key in random_keys:
         # Revert the hash table to original value
-        table.table = original_table.copy()
+        table.slots = original_slots.copy()
 
         # Attempt to insert into the table
         try:
@@ -58,7 +63,6 @@ def save_displacement_plot(displacement_arr: list[int], title, filename):
     plt.ylabel("displacements per insertion")
     plt.savefig(output_file)
     plt.close()
-
 
 
 def main():

@@ -20,7 +20,7 @@ class LinearCuckooHashTable(HashTable):
     @override
     def insert_key(self, key) -> int:
         slots = self.slots
-        position = self.hash(key) % self.n
+        position = self.hash(key) % self.size
 
         # Start displacements until reaching max_displacement
         for displacement in range(self.max_displacements):

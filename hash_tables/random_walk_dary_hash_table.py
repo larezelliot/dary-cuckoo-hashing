@@ -72,7 +72,7 @@ class RandomWalkDaryHashTable(HashTable):
             # Save position of previously evicted key
             previous_position = position
 
-        # Return infinity if max_displacements is reached
+        # Raises an exception if max_displacements is reached
         raise MaxDisplacementsExceededError()
 
     @override
